@@ -96,20 +96,45 @@ export function SaveRestore() {
     }
   }
 
-  // ── Export as .tldr (tldraw's open project format) ───────────────
-  // .tldr is JSON with MIME type application/vnd.tldraw+json, structured as:
-  // { tldrawFileFormatVersion: 1, schema: {...}, records: [...] }
-  // This is the same data as getSnapshot() but in the canonical tldraw file format,
-  // accepted by tldraw.com's Open File feature.
-  // NOTE: tldraw.com won't render custom 'card' shapes (unknown type), but all
-  // native shapes (arrows, text, images) will appear correctly.
-  const exportTldr = () => {
+  // ── Backup (full fidelity .json — for restoring in this app) ────────
+  const exportBackup = () => {
+    const snapshot = JSON.stringify(editor.getSnapshot(), null, 2)
+    const blob = new Blob([snapshot], { type: 'application/json' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = `lgp-backup-${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  // ── Share as .tldr (tldraw.com / VS Code compatible) ─────────────
+  // Custom 'card' shapes are stripped — they are unknown to tldraw.com
+  // and cause an "invalid records" error if included.
+  // Native shapes (arrows, text, images) are preserved and render correctly.
+  const exportTldrCompat = () => {
     const snapshot = editor.getSnapshot()
+    const store    = snapshot.document.store as Record<string, any>
+
+    // Filter out card shapes and any card-specific schema sequences
+    const compatRecords = Object.values(store).filter(
+      (r: any) => !(r.typeName === 'shape' && r.type === 'card')
+    )
+
+    // Remove card-related sequences from the schema so tldraw.com doesn't
+    // encounter an unknown migration sequence
+    const origSchema = snapshot.document.schema as any
+    const cleanSequences: Record<string, number> = {}
+    for (const [key, val] of Object.entries(origSchema.sequences ?? {})) {
+      if (!key.includes('.card')) cleanSequences[key] = val as number
+    }
+
     const tldrFile = {
       tldrawFileFormatVersion: 1,
-      schema: snapshot.document.schema,
-      records: Object.values(snapshot.document.store),
+      schema: { ...origSchema, sequences: cleanSequences },
+      records: compatRecords,
     }
+
     const blob = new Blob([JSON.stringify(tldrFile, null, 2)], { type: 'application/vnd.tldraw+json' })
     const url  = URL.createObjectURL(blob)
     const a    = document.createElement('a')
@@ -119,7 +144,7 @@ export function SaveRestore() {
     URL.revokeObjectURL(url)
   }
 
-  // ── Import — accepts both .tldr (tldraw project) and .json (legacy backup) ──
+  // ── Import — accepts .json backup or .tldr ────────────────────────
   const importFile = () => {
     const input    = document.createElement('input')
     input.type     = 'file'
@@ -133,14 +158,14 @@ export function SaveRestore() {
           const data = JSON.parse(ev.target?.result as string)
 
           if (data.tldrawFileFormatVersion !== undefined) {
-            // .tldr format: convert records array → store map, then load as snapshot
+            // .tldr format: convert records array → store map
             const storeMap: Record<string, unknown> = {}
             for (const record of data.records as any[]) {
               storeMap[record.id] = record
             }
             editor.loadSnapshot({ document: { store: storeMap as any, schema: data.schema } })
           } else {
-            // Legacy .json snapshot format: { document, session }
+            // Full backup .json format: { document, session }
             editor.loadSnapshot(data)
           }
         } catch (err) {
@@ -178,10 +203,13 @@ export function SaveRestore() {
         </span>
       )}
 
-      <button onClick={exportTldr} style={btn('#1e88e5')} title="Download canvas as .tldr project file (compatible with tldraw.com)">
-        💾 Export
+      <button onClick={exportBackup} style={btn('#1e88e5')} title="Full backup including card slides (.json) — restore in this app">
+        💾 Backup
       </button>
-      <button onClick={importFile} style={btn('#546e7a')} title="Restore canvas from a .tldr or .json backup file">
+      <button onClick={exportTldrCompat} style={btn('#00897b')} title="Export as .tldr for tldraw.com or VS Code extension (cards stripped, arrows/text preserved)">
+        📤 Share .tldr
+      </button>
+      <button onClick={importFile} style={btn('#546e7a')} title="Restore from a .json backup or .tldr file">
         📂 Import
       </button>
       <div style={{ position: 'relative' }} ref={panelRef}>
