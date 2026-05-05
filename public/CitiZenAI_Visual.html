@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Citi-Zen AI — Unlocking Council Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=IBM+Plex+Sans:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;background:#0b1220;}
+body{cursor:grab;user-select:none;}
+body.drag{cursor:grabbing;}
+
+#vp{position:absolute;inset:0;overflow:hidden;}
+
+#stage{
+  position:absolute;
+  top:50%;left:50%;
+  width:1720px;height:1100px;
+  margin-left:-860px;margin-top:-550px;
+  transform-origin:center center;
+}
+
+#svg-layer{
+  position:absolute;inset:0;
+  width:1720px;height:1100px;
+  overflow:visible;pointer-events:none;
+}
+
+/* ── Card base ─────────────────────────────── */
+.card{
+  position:absolute;
+  border-radius:10px;
+  border:1.8px solid;
+  padding:13px 15px 13px;
+  font-family:'Caveat',cursive;
+  background:#0d1826;
+}
+
+/* ── Label badge ───────────────────────────── */
+.badge{
+  display:inline-block;
+  font-family:'IBM Plex Sans',sans-serif;
+  font-style:italic;
+  font-size:9.5px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  border-radius:3px;
+  padding:1px 6px;
+  margin-bottom:7px;
+  font-weight:400;
+  opacity:.9;
+}
+
+/* ── Heading ───────────────────────────────── */
+.card h2{
+  font-family:'Caveat',cursive;
+  font-weight:700;
+  font-size:24px;
+  line-height:1.22;
+  margin-bottom:7px;
+}
+.card h3{
+  font-family:'Caveat',cursive;
+  font-weight:700;
+  font-size:20px;
+  line-height:1.2;
+  margin-bottom:6px;
+}
+
+/* ── Body text ─────────────────────────────── */
+.body{
+  font-family:'IBM Plex Sans',sans-serif;
+  font-style:italic;
+  font-size:12.5px;
+  line-height:1.55;
+  color:#7a90a8;
+  font-weight:300;
+}
+.body li{list-style:none;padding-left:0;}
+.body li::before{content:"· ";color:#6a8099;}
+
+/* ── Footer callout ────────────────────────── */
+.foot{
+  font-family:'Caveat',cursive;
+  font-size:14px;
+  font-weight:600;
+  margin-top:8px;
+  font-style:italic;
+  line-height:1.3;
+}
+
+/* ── QR placeholder ────────────────────────── */
+.qr{
+  width:80px;height:80px;
+  border:1.5px solid #26c6da;
+  border-radius:5px;
+  margin:10px auto 0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'IBM Plex Sans',sans-serif;
+  font-size:9px;color:#26c6da;font-style:italic;
+}
+
+/* ── Section rule ──────────────────────────── */
+.rule{
+  position:absolute;
+  font-family:'IBM Plex Sans',sans-serif;
+  font-size:9px;letter-spacing:.18em;text-transform:uppercase;
+  font-style:italic;color:#1d2e42;
+  display:flex;align-items:center;gap:8px;white-space:nowrap;
+}
+.rule::before,.rule::after{
+  content:'';flex:1;height:1px;
+  background:repeating-linear-gradient(90deg,#1a2d42 0,#1a2d42 4px,transparent 4px,transparent 8px);
+}
+.rule::before{width:20px;}
+.rule::after{width:80px;}
+
+/* ── Arrow text labels ─────────────────────── */
+.albl{
+  position:absolute;
+  font-family:'Caveat',cursive;
+  font-size:14px;
+  color:#253a52;
+  font-style:italic;
+  pointer-events:none;
+  white-space:nowrap;
+}
+
+/* ── Zoom hint ─────────────────────────────── */
+#hint{
+  position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
+  background:rgba(11,18,32,.92);border:1px solid #1a2d42;
+  border-radius:20px;padding:4px 18px;
+  font-family:'IBM Plex Sans',sans-serif;font-size:11px;
+  color:#253a52;letter-spacing:.06em;z-index:99;pointer-events:none;
+}
+</style>
+</head>
+<body>
+<div id="vp">
+<div id="stage">
+
+<!-- ══════════════════════════════
+     SVG ARROWS
+══════════════════════════════ -->
+<svg id="svg-layer" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3.5" orient="auto">
+      <path d="M1,1.5 L6,3.5 L1,5.5" fill="none" stroke="#1e3a55" stroke-width="1.4"/>
+    </marker>
+  </defs>
+  <g stroke="#1e3050" stroke-width="1.6" fill="none"
+     stroke-dasharray="5,4" marker-end="url(#arr)">
+
+    <!-- Opening → Problem (down-left) -->
+    <path d="M 620,195 C 550,230 320,225 280,230"/>
+    <!-- Opening → Blueprint (down) -->
+    <path d="M 700,195 C 700,230 730,238 750,242"/>
+    <!-- Opening ↔ Stand Up (right, horizontal) -->
+    <path d="M 874,95 C 930,78 1010,72 1050,85"/>
+    <!-- Problem → SharePoint (right) -->
+    <path d="M 330,308 C 345,300 360,295 370,295"/>
+    <!-- SharePoint → Blueprint (right) -->
+    <path d="M 650,305 C 670,300 720,280 750,278"/>
+    <!-- Blueprint → Frontier Firm (down) -->
+    <path d="M 790,387 C 780,430 760,500 740,528"/>
+    <!-- Stand Up → Q1 (down-left) -->
+    <path d="M 1108,180 C 1100,205 1078,228 1065,235"/>
+    <!-- Q1 → Q2 (right) -->
+    <path d="M 1288,270 C 1305,268 1318,270 1330,272"/>
+    <!-- Q2 → Q3 (down-left) -->
+    <path d="M 1378,358 C 1360,385 1310,395 1286,400"/>
+    <!-- Q3 → Reveal (down-left) -->
+    <path d="M 1250,530 C 1230,548 1210,562 1195,568"/>
+    <!-- Frontier Firm → Reveal (right) -->
+    <path d="M 920,610 C 955,608 988,610 1010,618"/>
+    <!-- Frontier Firm → Citi-Zen (down-left) -->
+    <path d="M 660,695 C 580,730 260,738 230,740"/>
+    <!-- Frontier Firm → Outcomes (down) -->
+    <path d="M 710,695 C 680,730 580,745 550,748"/>
+    <!-- Frontier Firm → CTA (down-right) -->
+    <path d="M 790,695 C 780,725 790,738 800,745"/>
+    <!-- Citi-Zen → Outcomes (right) -->
+    <path d="M 310,820 C 340,815 370,812 395,810"/>
+    <!-- Outcomes → CTA (right) -->
+    <path d="M 690,808 C 715,805 738,800 752,798"/>
+    <!-- Reveal → CTA (down-left) -->
+    <path d="M 1065,780 C 1030,800 970,808 940,812"/>
+  </g>
+</svg>
+
+<!-- ══════════════════════════════
+     ARROW LABELS
+══════════════════════════════ -->
+<div class="albl" style="left:185px;top:428px;">foundation first ↓</div>
+<div class="albl" style="left:792px;top:445px;">only 2 remain standing →</div>
+<div class="albl" style="left:590px;top:700px;">proof works ↓</div>
+
+<!-- ══════════════════════════════
+     SECTION RULE
+══════════════════════════════ -->
+<div class="rule" style="left:22px;top:705px;width:310px;">SOLUTION</div>
+
+<!-- ══════════════════════════════
+     1 · OPENING
+══════════════════════════════ -->
+<div class="card" style="left:515px;top:28px;width:360px;border-color:#26c6da;background:rgba(5,28,38,.72);">
+  <span class="badge" style="background:rgba(38,198,218,.18);color:#26c6da;">Opening</span>
+  <h2 style="color:#4dd0e1;font-size:26px;">"You can outsource your thinking —<br>but you can't outsource<br>your understanding."</h2>
+  <div class="body">AI accelerates work. Councils must own their knowledge.</div>
+</div>
+
+<!-- ══════════════════════════════
+     2 · STAND UP LEADERSHIP TEST
+══════════════════════════════ -->
+<div class="card" style="left:1042px;top:22px;width:282px;border-color:#26c6da;background:rgba(5,28,38,.72);">
+  <span class="badge" style="background:rgba(38,198,218,.18);color:#26c6da;">Interactive</span>
+  <h3 style="color:#4dd0e1;">🖐 Stand Up Leadership Test</h3>
+  <div class="body">Everyone stands. Three questions.<br>Only 2 people remain — the AI<br>leaders in local government.</div>
+</div>
+
+<!-- ══════════════════════════════
+     3 · THE PROBLEM
+══════════════════════════════ -->
+<div class="card" style="left:22px;top:216px;width:295px;border-color:#ef5350;background:rgba(38,5,5,.62);">
+  <span class="badge" style="background:rgba(239,83,80,.2);color:#ef7070;">The Problem</span>
+  <h3 style="color:#ef5350;">Reality in Councils Today</h3>
+  <ul class="body" style="margin-top:4px;">
+    <li>Siloed knowledge across teams</li>
+    <li>Gated systems restricting access</li>
+    <li>Systems of record holding intel</li>
+    <li>SharePoint sprawl — not AI-ready</li>
+  </ul>
+  <div class="foot" style="color:#ef7070;">↳ Councils don't lack knowledge.<br>&nbsp;&nbsp;&nbsp;They lack <em>accessible</em> knowledge.</div>
+</div>
+
+<!-- ══════════════════════════════
+     4 · ROOT CAUSE — SHAREPOINT
+══════════════════════════════ -->
+<div class="card" style="left:370px;top:226px;width:272px;border-color:#ffd740;background:rgba(38,28,0,.6);">
+  <span class="badge" style="background:rgba(255,215,64,.18);color:#ffc400;">Root Cause</span>
+  <h3 style="color:#ffd740;">SharePoint: The Classic Example</h3>
+  <ul class="body" style="margin-top:4px;">
+    <li>No taxonomy or structure</li>
+    <li>PDFs without machine context</li>
+    <li>Version sprawl</li>
+    <li>No authoritative source of truth</li>
+  </ul>
+  <div class="foot" style="color:#ffc400;">↳ AI needs structure — not document dumps.</div>
+</div>
+
+<!-- ══════════════════════════════
+     5 · BLUEPRINT
+══════════════════════════════ -->
+<div class="card" style="left:752px;top:235px;width:278px;border-color:#26c6da;background:rgba(5,28,38,.68);">
+  <span class="badge" style="background:rgba(38,198,218,.18);color:#26c6da;">Blueprint</span>
+  <h3 style="color:#4dd0e1;">How Councils Fix This</h3>
+  <div class="body" style="margin-top:5px;">
+    <div><span style="color:#4dd0e1;font-family:'Caveat',cursive;font-size:14px;font-weight:700;">01</span> &nbsp;Remodel knowledge</div>
+    <div><span style="color:#4dd0e1;font-family:'Caveat',cursive;font-size:14px;font-weight:700;">02</span> &nbsp;Connect systems of record</div>
+    <div><span style="color:#4dd0e1;font-family:'Caveat',cursive;font-size:14px;font-weight:700;">03</span> &nbsp;Expose knowledge to Copilot</div>
+    <div><span style="color:#4dd0e1;font-family:'Caveat',cursive;font-size:14px;font-weight:700;">04</span> &nbsp;Enable customer service teams</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     6 · Q1
+══════════════════════════════ -->
+<div class="card" style="left:1062px;top:228px;width:248px;border-color:#26c6da;background:rgba(0,28,22,.68);">
+  <span class="badge" style="background:rgba(38,198,218,.18);color:#26c6da;">Q1</span>
+  <h3 style="color:#4dd0e1;">Used an LLM today?</h3>
+  <div class="body">ChatGPT, Claude, Copilot — any of them.</div>
+</div>
+
+<!-- ══════════════════════════════
+     7 · Q2
+══════════════════════════════ -->
+<div class="card" style="left:1330px;top:242px;width:218px;border-color:#1de9b6;background:rgba(0,28,22,.65);">
+  <span class="badge" style="background:rgba(29,233,182,.15);color:#1de9b6;">Q2</span>
+  <h3 style="color:#1de9b6;">Built or bought an agent?</h3>
+  <div class="body">For your role or department.</div>
+</div>
+
+<!-- ══════════════════════════════
+     8 · Q3
+══════════════════════════════ -->
+<div class="card" style="left:1200px;top:392px;width:248px;border-color:#7c4dff;background:rgba(18,5,42,.7);">
+  <span class="badge" style="background:rgba(124,77,255,.2);color:#b388ff;">Q3</span>
+  <h3 style="color:#b388ff;">Planning your token budget<br>for FY27?</h3>
+  <div class="body">Thinking about AI cost governance.</div>
+</div>
+
+<!-- ══════════════════════════════
+     9 · FRONTIER FIRM STORY
+══════════════════════════════ -->
+<div class="card" style="left:575px;top:522px;width:305px;border-color:#66bb6a;background:rgba(0,22,8,.68);">
+  <span class="badge" style="background:rgba(102,187,106,.18);color:#69f0ae;">Proof Point</span>
+  <h3 style="color:#69f0ae;">🚀 Frontier Firm Story</h3>
+  <div class="body" style="margin-top:4px;">Independent RFP review agent:<ul style="margin-top:4px;">
+    <li>Analysed all vendor submissions</li>
+    <li>Compared pricing, compliance, risk</li>
+    <li>Cross-referenced technical specs</li>
+    <li>6–8 weeks of work in &lt;48 hours</li>
+    <li>Full auditability throughout</li>
+  </ul></div>
+</div>
+
+<!-- ══════════════════════════════
+     10 · REVEAL
+══════════════════════════════ -->
+<div class="card" style="left:1010px;top:562px;width:308px;border-color:#ffd740;background:rgba(25,18,0,.72);">
+  <span class="badge" style="background:rgba(255,215,64,.18);color:#ffd740;">Reveal</span>
+  <h3 style="color:#ffd740;">⭐ These are your future leaders.</h3>
+  <div class="body" style="margin-top:5px;">Not because they know AI — but because<br>they lean into the future before it arrives.</div>
+  <div class="foot" style="color:#ffd740;font-size:15px;margin-top:7px;">"AI will 100% change your job —<br>with 90% certainty in 24 months."</div>
+  <div class="body" style="margin-top:6px;">Your mind is incredibly malleable.<br>You have a chance to re-educate yourself.</div>
+</div>
+
+<!-- ══════════════════════════════
+     11 · CITI-ZEN AI
+══════════════════════════════ -->
+<div class="card" style="left:22px;top:728px;width:290px;border-color:#26c6da;background:rgba(5,28,38,.72);">
+  <span class="badge" style="background:rgba(38,198,218,.18);color:#26c6da;">Solution</span>
+  <h3 style="color:#4dd0e1;">🏛️ Introducing Citi-Zen AI</h3>
+  <div class="body" style="margin-top:5px;">Intelligence layer for local government:
+    <ul style="margin-top:5px;">
+      <li><span style="color:#ffd740;">📐</span> SharePoint Remodelling</li>
+      <li><span style="color:#7c4dff;">👤</span> Customer 360</li>
+      <li><span style="color:#ef5350;">📞</span> 24/7 Customer Service</li>
+      <li><span style="color:#26c6da;">🤖</span> Copilot Integration</li>
+    </ul>
+  </div>
+  <div class="foot" style="color:#4dd0e1;">Not a chatbot — a full intelligence platform.</div>
+</div>
+
+<!-- ══════════════════════════════
+     12 · OUTCOMES
+══════════════════════════════ -->
+<div class="card" style="left:395px;top:742px;width:285px;border-color:#37474f;background:rgba(10,16,28,.75);">
+  <span class="badge" style="background:rgba(55,71,79,.3);color:#78909c;">Outcomes</span>
+  <h3 style="color:#80cbc4;">What This Means for Teams</h3>
+  <ul class="body" style="margin-top:5px;">
+    <li>✓ Instant access to policies &amp; cases</li>
+    <li>✓ Faster onboarding</li>
+    <li>✓ Consistent, accurate answers</li>
+    <li>✓ Reduced handle time</li>
+    <li>✓ More time solving problems</li>
+  </ul>
+  <div class="foot" style="color:#80cbc4;">AI augments — it doesn't replace.</div>
+</div>
+
+<!-- ══════════════════════════════
+     13 · CALL TO ACTION
+══════════════════════════════ -->
+<div class="card" style="left:752px;top:728px;width:290px;border-color:#26c6da;background:rgba(5,28,38,.72);text-align:center;">
+  <span class="badge" style="background:rgba(38,198,218,.18);color:#26c6da;">Call to Action</span>
+  <h3 style="color:#4dd0e1;">Fix Your Biggest CX Pain — Live</h3>
+  <div class="body" style="text-align:center;margin-top:8px;">
+    Scan the QR code.<br>
+    Complete the Microsoft Form.<br>
+    Tell us your biggest pain point.
+  </div>
+  <div class="foot" style="color:#4dd0e1;text-align:center;margin-top:9px;font-size:16px;">
+    We'll fix it live at our booth<br>using Copilot &amp; Citi-Zen AI.
+  </div>
+  <div class="qr">[ QR Code ]</div>
+</div>
+
+</div><!-- /stage -->
+</div><!-- /vp -->
+
+<div id="hint">Scroll to zoom · Drag to pan · Double-click to fit</div>
+
+<script>
+const vp=document.getElementById('vp'),stage=document.getElementById('stage');
+let sc=1,tx=0,ty=0,drag=false,mx0,my0,tx0,ty0;
+
+function fit(){
+  sc=Math.min(window.innerWidth/1720,window.innerHeight/1100)*0.93;
+  tx=0;ty=0;apply();
+}
+function apply(){
+  stage.style.transform=`translate(calc(-50% + ${tx}px),calc(-50% + ${ty}px)) scale(${sc})`;
+}
+
+fit();
+window.addEventListener('resize',fit);
+
+vp.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const f=e.deltaY<0?1.1:0.91;
+  const r=vp.getBoundingClientRect();
+  const ox=e.clientX-r.left-r.width/2,oy=e.clientY-r.top-r.height/2;
+  tx=ox+(tx-ox)*f;ty=oy+(ty-oy)*f;
+  sc=Math.min(Math.max(sc*f,0.12),6);
+  apply();
+},{passive:false});
+
+vp.addEventListener('mousedown',e=>{drag=true;mx0=e.clientX;my0=e.clientY;tx0=tx;ty0=ty;document.body.classList.add('drag');});
+window.addEventListener('mousemove',e=>{if(!drag)return;tx=tx0+e.clientX-mx0;ty=ty0+e.clientY-my0;apply();});
+window.addEventListener('mouseup',()=>{drag=false;document.body.classList.remove('drag');});
+vp.addEventListener('dblclick',fit);
+
+// Touch
+let lpd=0;
+vp.addEventListener('touchstart',e=>{
+  if(e.touches.length===1){drag=true;mx0=e.touches[0].clientX;my0=e.touches[0].clientY;tx0=tx;ty0=ty;}
+  else if(e.touches.length===2){drag=false;lpd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);}
+},{passive:true});
+vp.addEventListener('touchmove',e=>{
+  if(e.touches.length===1&&drag){tx=tx0+e.touches[0].clientX-mx0;ty=ty0+e.touches[0].clientY-my0;apply();}
+  else if(e.touches.length===2){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);sc=Math.min(Math.max(sc*(d/lpd),0.12),6);lpd=d;apply();}
+},{passive:true});
+vp.addEventListener('touchend',()=>{drag=false;});
+</script>
+</body>
+</html>
