@@ -96,31 +96,53 @@ export function SaveRestore() {
     }
   }
 
-  // ── Export JSON file ─────────────────────────────────────────────
-  const exportJSON = () => {
-    const snapshot = JSON.stringify(editor.getSnapshot(), null, 2)
-    const blob = new Blob([snapshot], { type: 'application/json' })
+  // ── Export as .tldr (tldraw's open project format) ───────────────
+  // .tldr is JSON with MIME type application/vnd.tldraw+json, structured as:
+  // { tldrawFileFormatVersion: 1, schema: {...}, records: [...] }
+  // This is the same data as getSnapshot() but in the canonical tldraw file format,
+  // accepted by tldraw.com's Open File feature.
+  // NOTE: tldraw.com won't render custom 'card' shapes (unknown type), but all
+  // native shapes (arrows, text, images) will appear correctly.
+  const exportTldr = () => {
+    const snapshot = editor.getSnapshot()
+    const tldrFile = {
+      tldrawFileFormatVersion: 1,
+      schema: snapshot.document.schema,
+      records: Object.values(snapshot.document.store),
+    }
+    const blob = new Blob([JSON.stringify(tldrFile, null, 2)], { type: 'application/vnd.tldraw+json' })
     const url  = URL.createObjectURL(blob)
     const a    = document.createElement('a')
     a.href     = url
-    a.download = `lgp-canvas-${new Date().toISOString().slice(0, 10)}.json`
+    a.download = `lgp-canvas-${new Date().toISOString().slice(0, 10)}.tldr`
     a.click()
     URL.revokeObjectURL(url)
   }
 
-  // ── Import JSON file ─────────────────────────────────────────────
-  const importJSON = () => {
+  // ── Import — accepts both .tldr (tldraw project) and .json (legacy backup) ──
+  const importFile = () => {
     const input    = document.createElement('input')
     input.type     = 'file'
-    input.accept   = '.json'
+    input.accept   = '.tldr,.json'
     input.onchange = () => {
       const file = input.files?.[0]
       if (!file) return
       const reader = new FileReader()
       reader.onload = ev => {
         try {
-          const snapshot = JSON.parse(ev.target?.result as string)
-          editor.loadSnapshot(snapshot)
+          const data = JSON.parse(ev.target?.result as string)
+
+          if (data.tldrawFileFormatVersion !== undefined) {
+            // .tldr format: convert records array → store map, then load as snapshot
+            const storeMap: Record<string, unknown> = {}
+            for (const record of data.records as any[]) {
+              storeMap[record.id] = record
+            }
+            editor.loadSnapshot({ document: { store: storeMap as any, schema: data.schema } })
+          } else {
+            // Legacy .json snapshot format: { document, session }
+            editor.loadSnapshot(data)
+          }
         } catch (err) {
           alert('Import failed: ' + err)
         }
@@ -156,10 +178,10 @@ export function SaveRestore() {
         </span>
       )}
 
-      <button onClick={exportJSON} style={btn('#1e88e5')} title="Download canvas as JSON backup file">
+      <button onClick={exportTldr} style={btn('#1e88e5')} title="Download canvas as .tldr project file (compatible with tldraw.com)">
         💾 Export
       </button>
-      <button onClick={importJSON} style={btn('#546e7a')} title="Restore canvas from a JSON file">
+      <button onClick={importFile} style={btn('#546e7a')} title="Restore canvas from a .tldr or .json backup file">
         📂 Import
       </button>
       <div style={{ position: 'relative' }} ref={panelRef}>
