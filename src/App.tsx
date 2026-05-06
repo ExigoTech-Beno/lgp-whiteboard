@@ -3,7 +3,7 @@ import 'tldraw/tldraw.css'
 import { CardShapeUtil } from './shapes/CardShape'
 import { CanvasOverlay } from './components/CanvasOverlay'
 import { ErrorBoundary } from './components/ErrorBoundary'
-import { initPresentation, initLogo, migrateStandupInstr, migrateQCards, migrateRevealArrow } from './slides/initPresentation'
+import { initPresentation, initLogo, migrateStandupInstr, migrateQCards, migrateRevealArrow, migrateGatedCard } from './slides/initPresentation'
 
 const customShapes = [CardShapeUtil]
 const customComponents = { InFrontOfTheCanvas: CanvasOverlay }
@@ -23,6 +23,7 @@ return (
           migrateStandupInstr(editor)
           migrateQCards(editor)
           migrateRevealArrow(editor)
+          migrateGatedCard(editor)
         }}
       />
     </div>

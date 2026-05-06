@@ -85,6 +85,36 @@ export function migrateRevealArrow(editor: Editor) {
   })
 }
 
+/** Adds the Gated Systems / Knowledge Stewards card if missing. */
+export function migrateGatedCard(editor: Editor) {
+  const gatedId    = createShapeId('gated')
+  const blueprintId = createShapeId('blueprint')
+  const a19Id      = createShapeId('a-blue-gated')
+
+  if (editor.getShape(gatedId)) return  // already present
+
+  editor.run(() => {
+    editor.createShapes([
+      {
+        type: 'card', id: gatedId, x: 1100, y: 218,
+        props: {
+          w: 345, h: 248, colorKey: '', color: 'amber',
+          badge: 'Gated Systems',
+          title: '🔒  Councils: Knowledge Stewards',
+          body:  'Councils hold the community\'s intelligence:\nbylaws, permits, cases, history.\nCitizens are the rightful beneficiaries.\n\nBut that knowledge is locked behind:\n· Closed CRMs & ERPs\n· Legacy line-of-business apps\n· Gated portals staff navigate manually\n\nStaff become human APIs —\nbridging system gaps by hand.',
+          footer: '↳ With unlimited AI intelligence: connect\nevery system → surface knowledge instantly\n→ serve citizens at the speed of thought.',
+          url: '',
+        },
+      } as any,
+      arrowShape(a19Id, 0),
+    ])
+    editor.createBindings([
+      bind(a19Id, blueprintId, 'start', { x: 1, y: 0.5 }),
+      bind(a19Id, gatedId,     'end',   { x: 0, y: 0.5 }),
+    ])
+  })
+}
+
 /** Adds the Stand Up Instructions card if missing (migration for existing canvases). */
 export function migrateStandupInstr(editor: Editor) {
   if (editor.getShape(STANDUP_INSTR_ID)) return  // already present
@@ -199,6 +229,7 @@ export function initPresentation(editor: Editor) {
   const problem    = createShapeId('problem')
   const sharepoint = createShapeId('sharepoint')
   const blueprint  = createShapeId('blueprint')
+  const gated      = createShapeId('gated')
   const q1         = createShapeId('q1')
   const q2         = createShapeId('q2')
   const q3         = createShapeId('q3')
@@ -227,6 +258,7 @@ export function initPresentation(editor: Editor) {
   const a15 = createShapeId('a-citzen-outcomes')
   const a16 = createShapeId('a-outcomes-cta')
   const a18 = createShapeId('a-cta-vibesub')
+  const a19 = createShapeId('a-blue-gated')
 
   editor.run(() => {
     // ── CARDS ────────────────────────────────────────────────────
@@ -266,6 +298,12 @@ export function initPresentation(editor: Editor) {
         'How Councils Fix This',
         '01  Remodel knowledge\n02  Connect systems of record\n03  Expose knowledge to Copilot\n04  Enable customer service teams',
         '', 'blue'),
+
+      card(gated, 1100, 218, 345, 248,
+        'Gated Systems',
+        '🔒  Councils: Knowledge Stewards',
+        'Councils hold the community\'s intelligence:\nbylaws, permits, cases, history.\nCitizens are the rightful beneficiaries.\n\nBut that knowledge is locked behind:\n· Closed CRMs & ERPs\n· Legacy line-of-business apps\n· Gated portals staff navigate manually\n\nStaff become human APIs —\nbridging system gaps by hand.',
+        '↳ With unlimited AI intelligence: connect\nevery system → surface knowledge instantly\n→ serve citizens at the speed of thought.', 'amber'),
 
       // Q1/Q2/Q3 — clustered vertical stack, same violet colour
       card(q1, 1760, 22,  260, 120, 'Q1', 'Used an LLM today?',             'ChatGPT, Claude, Copilot — any of them.',  '', 'violet'),
@@ -318,7 +356,7 @@ export function initPresentation(editor: Editor) {
       arrowShape(a8,    0), arrowShape(a9,  10),
       arrowShape(a10,  10), arrowShape(a11, 20), arrowShape(a12,-40),
       arrowShape(a13, -10), arrowShape(a14,  0), arrowShape(a15,  0),
-      arrowShape(a16,   0), arrowShape(a18,   0),
+      arrowShape(a16,   0), arrowShape(a18,   0), arrowShape(a19,   0),
     ])
 
     // ── BINDINGS ─────────────────────────────────────────────────
@@ -341,6 +379,7 @@ export function initPresentation(editor: Editor) {
       bind(a15, citzen,     'start', RGT),   bind(a15, outcomes,   'end',   LFT),
       bind(a16, outcomes,   'start', RGT),   bind(a16, cta,        'end',   LFT),
       bind(a18, cta,        'start', RGT),   bind(a18, vibesub,    'end',   LFT),
+      bind(a19, blueprint,  'start', RGT),   bind(a19, gated,      'end',   LFT),
     ])
 
     // ── FLOATING LABELS ──────────────────────────────────────────
