@@ -13,7 +13,7 @@ return (
   <ErrorBoundary>
     <div style={{ position: 'fixed', inset: 0 }}>
       <Tldraw
-        persistenceKey="lgp-presentation"
+        persistenceKey="lgp-v2"
         shapeUtils={customShapes}
         components={customComponents}
         onMount={(editor) => {

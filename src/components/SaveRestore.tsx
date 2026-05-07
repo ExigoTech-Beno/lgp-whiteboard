@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useEditor } from 'tldraw'
+import { initPresentation, initLogo, migrateStandupInstr, migrateQCards, migrateRevealArrow, migrateGatedCard } from '../slides/initPresentation'
 
 const MAX_SLOTS = 5
 const SLOT_KEY = (i: number) => `lgp-bk-${i}`
@@ -177,7 +178,22 @@ export function SaveRestore() {
     input.click()
   }
 
-  // ── Render ───────────────────────────────────────────────────────
+  // ── Reset canvas — wipe everything and reinitialise from scratch ──
+  const resetCanvas = () => {
+    if (!confirm('Reset the canvas? All changes will be lost and the presentation will be rebuilt from scratch.')) return
+    editor.run(() => {
+      const allIds = [...editor.getCurrentPageShapeIds()]
+      if (allIds.length) editor.deleteShapes(allIds)
+    })
+    initPresentation(editor)
+    initLogo(editor)
+    migrateStandupInstr(editor)
+    migrateQCards(editor)
+    migrateRevealArrow(editor)
+    migrateGatedCard(editor)
+  }
+
+
   return (
     <div
       style={{
@@ -211,6 +227,9 @@ export function SaveRestore() {
       </button>
       <button onClick={importFile} style={btn('#546e7a')} title="Restore from a .json backup or .tldr file">
         📂 Import
+      </button>
+      <button onClick={resetCanvas} style={btn('#e53935')} title="Wipe canvas and rebuild presentation from scratch">
+        🔄 Reset
       </button>
       <div style={{ position: 'relative' }} ref={panelRef}>
         <button onClick={openPanel} style={btn('#7c4dff')} title="View auto-save history">
