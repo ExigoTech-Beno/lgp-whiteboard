@@ -220,8 +220,8 @@ const BOT_L = { x: 0.2, y: 1 }
 const BOT_R = { x: 0.8, y: 1 }
 
 export function initPresentation(editor: Editor) {
-  // Guard against React StrictMode double-mount — check if shapes already exist
-  if (editor.store.allRecords().some((r: any) => r.typeName === 'shape')) return
+  // Only skip if the opening card already exists (idempotent check)
+  if (editor.getShape(createShapeId('opening'))) return
 
   const opening    = createShapeId('opening')
   const standup    = createShapeId('standup')
