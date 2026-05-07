@@ -1,4 +1,4 @@
-import { DefaultColorStyle, Rectangle2d, ShapeUtil, T, resizeBox, useEditor, useIsEditing } from 'tldraw'
+import { Rectangle2d, ShapeUtil, T, resizeBox, useEditor, useIsEditing } from 'tldraw'
 
 // ── Theme type ────────────────────────────────────────────────────
 export interface CardTheme { accent: string; bg: string; badgeBg: string; titleColor: string }
@@ -95,7 +95,7 @@ export class CardShapeUtil extends ShapeUtil<any> {
     body: T.string,
     footer: T.string,
     url: T.string,
-    color: DefaultColorStyle,
+    color: T.string,
     colorKey: T.string.optional(), // extended 32-colour key; overrides DefaultColorStyle when set
   }
 
